@@ -1,1 +1,47 @@
-i
+.TH HSH 1 "May 2026" "Holberton School" "Simple Shell Manual"
+.SH NAME
+.B hsh
+\- a simple UNIX command interpreter
+.SH SYNOPSIS
+.B ./hsh
+.PP
+.B echo
+"command" |
+.B ./hsh
+.SH DESCRIPTION
+.B hsh
+is a simple shell that reads commands from standard input or
+from a script, and executes them. It mimics the behavior of
+.B /bin/sh
+with a limited set of features.
+.PP
+The shell supports both interactive and non-interactive modes.
+In interactive mode, a prompt
+.B $
+is displayed before each command.
+.SH INVOCATION
+Run the shell in interactive mode:
+.PP
+.B $ ./hsh
+.PP
+Or in non-interactive mode:
+.PP
+.B $ echo "ls" | ./hsh
+.SH BUILTIN COMMANDS
+.TP
+.B exit
+Exits the shell.
+.TP
+.B env
+Prints the current environment variables.
+.SH EXAMPLES
+.TP
+Run a command with full path:
+.B $ /bin/ls
+.TP
+Run using PATH:
+.B $ ls
+.SH AUTHORS
+Ahmed Ahmed, Afnan Aljohani
+.SH SEE ALSO
+sh(1), execve(2), fork(2)

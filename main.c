@@ -46,7 +46,6 @@ char *read_line(void)
  * @line: The input line to split
  *
  * Description: Uses strtok to split by spaces and tabs.
- * Returns a NULL-terminated array of strings.
  *
  * Return: Array of tokens, or NULL on failure
  */
@@ -75,8 +74,8 @@ char **split_line(char *line)
  * @argc: Argument count (unused)
  * @argv: Argument vector, argv[0] used for error messages
  *
- * Description: Main shell loop. Displays prompt, reads input,
- * splits into args, executes, and repeats until EOF.
+ * Description: Main shell loop. Reads, parses, and executes
+ * commands. Handles built-ins (exit, env) before forking.
  *
  * Return: 0 on success
  */
@@ -84,6 +83,7 @@ int main(int argc, char **argv)
 {
 	char *line;
 	char **args;
+	int builtin_status;
 
 	(void)argc;
 	while (1)
@@ -103,7 +103,14 @@ int main(int argc, char **argv)
 			free(line);
 			continue;
 		}
-		if (args[0] != NULL)
+		builtin_status = handle_builtin(args);
+		if (builtin_status == 2)
+		{
+			free(args);
+			free(line);
+			break;
+		}
+		if (builtin_status == 0 && args[0] != NULL)
 			execute(args, argv[0]);
 		free(args);
 		free(line);

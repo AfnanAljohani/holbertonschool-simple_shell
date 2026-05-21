@@ -15,5 +15,7 @@ void prompt(void);
 char *read_line(void);
 char **split_line(char *line);
 int execute(char **args, char *program_name);
+int handle_builtin(char **args);
+void print_env(void);
 
 #endif /* SHELL_H */

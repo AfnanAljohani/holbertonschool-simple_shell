@@ -17,5 +17,7 @@ char **split_line(char *line);
 int execute(char **args, char *program_name);
 int handle_builtin(char **args);
 void print_env(void);
+char *find_path(char *command);
+char *get_env(char *name);
 
 #endif /* SHELL_H */

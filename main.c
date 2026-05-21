@@ -1,16 +1,17 @@
 #include "shell.h"
 
 /**
- * prompt - Displays the shell prompt
+ * prompt - Displays the shell prompt in interactive mode
  *
- * Description: Prints "#cisfun$ " only in interactive mode
- * (when stdin is connected to a terminal).
+ * Description: Prints "#cisfun$ " only when stdin is a terminal.
  */
 void prompt(void)
 {
 	if (isatty(STDIN_FILENO))
+	{
 		printf("#cisfun$ ");
-	fflush(stdout);
+		fflush(stdout);
+	}
 }
 
 /**
@@ -41,18 +42,48 @@ char *read_line(void)
 }
 
 /**
+ * split_line - Splits a line into tokens (arguments)
+ * @line: The input line to split
+ *
+ * Description: Uses strtok to split by spaces and tabs.
+ * Returns a NULL-terminated array of strings.
+ *
+ * Return: Array of tokens, or NULL on failure
+ */
+char **split_line(char *line)
+{
+	char **tokens;
+	char *token;
+	int bufsize = 64, i = 0;
+
+	tokens = malloc(sizeof(char *) * bufsize);
+	if (tokens == NULL)
+		return (NULL);
+
+	token = strtok(line, " \t");
+	while (token != NULL)
+	{
+		tokens[i++] = token;
+		token = strtok(NULL, " \t");
+	}
+	tokens[i] = NULL;
+	return (tokens);
+}
+
+/**
  * main - Entry point for the simple shell
  * @argc: Argument count (unused)
  * @argv: Argument vector, argv[0] used for error messages
  *
- * Description: Main shell loop. Displays prompt, reads a
- * command, executes it. Continues until EOF (Ctrl+D).
+ * Description: Main shell loop. Displays prompt, reads input,
+ * splits into args, executes, and repeats until EOF.
  *
  * Return: 0 on success
  */
 int main(int argc, char **argv)
 {
 	char *line;
+	char **args;
 
 	(void)argc;
 	while (1)
@@ -61,8 +92,20 @@ int main(int argc, char **argv)
 		line = read_line();
 		if (line == NULL)
 			break;
-		if (line[0] != '\0')
-			execute(line, argv[0]);
+		if (line[0] == '\0')
+		{
+			free(line);
+			continue;
+		}
+		args = split_line(line);
+		if (args == NULL)
+		{
+			free(line);
+			continue;
+		}
+		if (args[0] != NULL)
+			execute(args, argv[0]);
+		free(args);
 		free(line);
 	}
 	return (0);

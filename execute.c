@@ -1,8 +1,8 @@
 #include "shell.h"
 
 /**
- * execute - Forks and executes a command
- * @command: The full path command to execute
+ * execute - Forks and executes a command with arguments
+ * @args: NULL-terminated array of arguments (args[0] = command)
  * @program_name: argv[0] of the shell, for error messages
  *
  * Description: Creates a child process. The child calls
@@ -13,14 +13,10 @@
  *
  * Return: 0 on success, 1 on fork failure
  */
-int execute(char *command, char *program_name)
+int execute(char **args, char *program_name)
 {
 	pid_t pid;
 	int status;
-	char *args[2];
-
-	args[0] = command;
-	args[1] = NULL;
 
 	pid = fork();
 	if (pid == -1)
@@ -33,7 +29,7 @@ int execute(char *command, char *program_name)
 		if (execve(args[0], args, environ) == -1)
 		{
 			fprintf(stderr, "%s: 1: %s: not found\n",
-				program_name, command);
+				program_name, args[0]);
 			exit(127);
 		}
 	}

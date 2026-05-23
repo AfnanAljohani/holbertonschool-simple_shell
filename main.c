@@ -1,111 +1,84 @@
 #include "shell.h"
 
 /**
- * prompt - Displays the shell prompt in interactive mode
+ * process_line - process a single input line
+ * @line: input line
+ * @program_name: argv[0]
  */
-void prompt(void)
+static void process_line(char *line, char *program_name)
 {
-        if (isatty(STDIN_FILENO))
-        {
-                printf("#cisfun$ ");
-                fflush(stdout);
-        }
+	char *expanded, *aliased;
+
+	strip_comment(line);
+	while (*line == ' ' || *line == 9)
+		line++;
+	if (line[0] == '\0')
+		return;
+	add_history(line);
+	expanded = expand_variables(line);
+	if (!expanded)
+		return;
+	aliased = substitute_alias(expanded);
+	free(expanded);
+	if (!aliased)
+		return;
+	run_line(aliased, program_name);
+	free(aliased);
 }
 
 /**
- * read_line - Reads one line of input from stdin
- *
- * Return: Pointer to the line or NULL on EOF
+ * interactive_loop - run shell in interactive or piped mode
+ * @program_name: argv[0]
+ * Return: exit status
  */
-char *read_line(void)
+static int interactive_loop(char *program_name)
 {
-        char *line = NULL;
-        size_t len = 0;
-        ssize_t nread;
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t nread;
+	int is_tty = isatty(STDIN_FILENO);
 
-        nread = getline(&line, &len, stdin);
-        if (nread == -1)
-        {
-                free(line);
-                if (isatty(STDIN_FILENO))
-                        printf("\n");
-                return (NULL);
-        }
-        if (nread > 0 && line[nread - 1] == '\n')
-                line[nread - 1] = '\0';
-        return (line);
+	while (1)
+	{
+		if (is_tty)
+		{
+			printf("($) ");
+			fflush(stdout);
+		}
+		nread = getline(&line, &len, stdin);
+		if (nread == -1)
+		{
+			if (is_tty)
+				printf("\n");
+			break;
+		}
+		if (nread > 0 && line[nread - 1] == '\n')
+			line[nread - 1] = '\0';
+		process_line(line, program_name);
+	}
+	free(line);
+	return (g_last_status);
 }
 
 /**
- * split_line - Splits a line into tokens (arguments)
- * @line: The input line to split
- *
- * Return: Array of tokens, or NULL on failure
- */
-char **split_line(char *line)
-{
-        char **tokens;
-        char *token;
-        int bufsize = 64, i = 0;
-
-        tokens = malloc(sizeof(char *) * bufsize);
-        if (tokens == NULL)
-                return (NULL);
-
-        token = strtok(line, " \t");
-        while (token != NULL)
-        {
-                tokens[i++] = token;
-                token = strtok(NULL, " \t");
-        }
-        tokens[i] = NULL;
-        return (tokens);
-}
-
-/**
- * main - Entry point for the simple shell
- * @argc: Argument count (unused)
- * @argv: Argument vector, argv[0] used for error messages
- *
- * Return: exit status of the last executed command
+ * main - shell entry point
+ * @argc: argument count
+ * @argv: argument vector
+ * Return: last exit status
  */
 int main(int argc, char **argv)
 {
-        char *line;
-        char **args;
-        int builtin_status;
-        int status = 0;
+	int status;
 
-        (void)argc;
-        while (1)
-        {
-                prompt();
-                line = read_line();
-                if (line == NULL)
-                        break;
-                if (line[0] == '\0')
-                {
-                        free(line);
-                        continue;
-                }
-                args = split_line(line);
-                if (args == NULL)
-                {
-                        free(line);
-                        continue;
-                }
-                builtin_status = handle_builtin(args);
-                if (builtin_status == 2)
-                {
-                        free(args);
-                        free(line);
-                        break;
-                }
-                if (builtin_status == 0 && args[0] != NULL)
-                        status = execute(args, argv[0]);
-                
-                free(args);
-                free(line);
-        }
-        return (status);
+	if (argc > 1)
+	{
+		status = run_file(argv[1], argv[0]);
+	}
+	else
+	{
+		status = interactive_loop(argv[0]);
+	}
+	free_aliases();
+	free_history();
+	return (status);
 }

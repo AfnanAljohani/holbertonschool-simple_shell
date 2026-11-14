@@ -1,5 +1,11 @@
 # 🐚 Simple Shell
 
+## 🖥️ See it run
+
+A real session in `hsh`, compiled from this repo: commands, aliases, errors, `||` and `;`.
+
+![hsh demo](docs/demo.png)
+
 ## 📖 Description
 This project is a simple UNIX command language interpreter written in C. It reads commands from the standard input or from a file and executes them. This project is part of the low-level programming and algorithm track at Holberton School.
 
